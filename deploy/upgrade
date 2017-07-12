@@ -1,0 +1,6 @@
+#!/bin/sh
+
+/usr/sbin/addsudo /bin/wget app-wordpress
+/usr/sbin/addsudo /bin/unzip app-wordpress
+/usr/sbin/addsudo /bin/cp app-wordpress
+/usr/sbin/addsudo /bin/mv app-wordpress
