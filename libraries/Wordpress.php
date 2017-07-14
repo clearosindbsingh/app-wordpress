@@ -116,9 +116,12 @@ class Wordpress extends Daemon
 
     const PATH_WEBROOT = '/var/www/html';
     const PATH_WORDPRESS = '/var/www/html/wordpress';
+    const PATH_VERSIONS = '/var/clearos/wordpress/versions/';
+    const PATH_BACKUP = '/var/clearos/wordpress/backup/';
     const COMMAND_MYSQLADMIN = '/usr/bin/mysqladmin';
     const COMMAND_MYSQL = '/usr/bin/mysql';
     const COMMAND_WGET = '/bin/wget';
+    const COMMAND_ZIP = '/bin/zip';
     const COMMAND_UNZIP = '/bin/unzip';
     const COMMAND_MV = '/bin/mv';
     const CONFIG_SAMPLE_FILE_NAME = 'wp-config-sample.php';
@@ -157,6 +160,50 @@ class Wordpress extends Daemon
         clearos_profile(__METHOD__, __LINE__);
         return self::PATH_WORDPRESS.'/'.$folder_name.'/';
     }
+    function get_versions()
+    {
+        $versions = array(
+                array(
+                    'version' => 'latest',
+                    'download_url' => 'https://wordpress.org/latest.zip',
+                    'deletable' => false,
+                    'size' => '',
+                ),
+                array(
+                    'version' => '4.8',
+                    'download_url' => 'https://wordpress.org/wordpress-4.8.zip',
+                    'deletable' => true,
+                    'size' => '',
+                ),
+                array(
+                    'version' => '4.7.5',
+                    'download_url' => 'https://wordpress.org/wordpress-4.7.5.zip',
+                    'deletable' => true,
+                    'size' => '',
+                ),
+                array(
+                    'version' => '4.7.4',
+                    'download_url' => 'https://wordpress.org/wordpress-4.7.4.zip',
+                    'deletable' => true,
+                    'size' => '',
+                ),
+            );
+        foreach ($versions as $key => $value) 
+        {
+            $versions[$key]['file_name'] = basename($versions[$key]['download_url']);
+            $versions[$key]['clearos_path'] = $this->get_wordpress_version_downloaded_path(basename($versions[$key]['download_url']));
+        }
+        return $versions;
+    }
+    function get_wordpress_version_downloaded_path($version_name)
+    {
+        $zip_folder = self::PATH_VERSIONS.$version_name;
+        $folder = new Folder($zip_folder,TRUE);
+        if($folder->exists())
+            return $zip_folder;
+        return FALSE;
+
+    }
 
     /**
      * Adds A new project.
@@ -169,7 +216,7 @@ class Wordpress extends Daemon
      * @return vois
      */
 
-    public function add_project($folder_name, $database_name, $database_username, $database_user_password, $root_username, $root_password, $use_exisiting_database = "No")
+    public function add_project($folder_name, $database_name, $database_username, $database_user_password, $root_username, $root_password, $use_exisiting_database = "No", $wordpress_version_file)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -194,7 +241,7 @@ class Wordpress extends Daemon
             throw new Exception($output_message);
 
         $this->create_project_folder($folder_name);
-        $this->put_wordpress($folder_name);
+        $this->put_wordpress($folder_name, $wordpress_version_file);
         $this->copy_sample_config_file($folder_name);
         $this->set_database_name($folder_name, $database_name);
         $this->set_database_user($folder_name, $database_username);
@@ -291,6 +338,12 @@ class Wordpress extends Daemon
             return lang('wordpress_folder_name_choose_other');
         else if($this->check_folder_exists($folder_name))
             return lang('wordpress_folder_already_exists');
+    }
+    public function validate_folder_name_exists($folder_name)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+        if (! preg_match('/^([a-z0-9_\-\.\$]+)$/', $folder_name))
+            return lang('wordpress_folder_name_invalid');
     }
     /**
      * Validate if database is new.
@@ -403,6 +456,19 @@ class Wordpress extends Daemon
             return lang('wordpress_password_invalid');
     }
     /**
+     * Validate wordpress version.
+     *
+     * @param string $wordpress_version version file name 
+     *
+     * @return string error message if exists
+     */
+    public function validate_wordpress_version($wordpress_version)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+        if (! preg_match('/.*\S.*/', $wordpress_version))
+            return lang('wordpress_password_invalid');
+    }
+    /**
      * Check Folder Exists.
      *
      * @param string $folder_name Folder Name
@@ -453,18 +519,23 @@ class Wordpress extends Daemon
      *
      * @return
      */
-    function put_wordpress($folder_name)
+    function put_wordpress($folder_name, $version_name)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $options['validate_exit_code'] = FALSE;
-        $shell = new Shell();
-
-        //echo "<pre>";
         $path_wordpress = self::PATH_WORDPRESS;
 
+        //echo $this->get_wordpress_version_downloaded_path($version_name); die;
+        $file = new File($this->get_wordpress_version_downloaded_path($version_name));
+        if(!$file->exists())
+            return FALSE;
+        $file->copy_to($path_wordpress);
 
-        $command = "https://wordpress.org/latest.zip -P $path_wordpress";
+
+        //echo "<pre>";
+
+
+        /*$command = "https://wordpress.org/latest.zip -P $path_wordpress";
         try {
             $retval = $shell->execute(
                 self::COMMAND_WGET, $command, TRUE, $options
@@ -472,15 +543,18 @@ class Wordpress extends Daemon
         } catch (Engine_Exception $e) {
            // print_r($e);
         }
-        $output = $shell->get_output();
+        $output = $shell->get_output();*/
 
-        $command = $path_wordpress."/latest.zip -d ".$path_wordpress;
+        $shell = new Shell();
+        $options['validate_exit_code'] = FALSE;
+
+        $command = $path_wordpress."/$version_name -d ".$path_wordpress;
         try {
             $retval = $shell->execute(
                 self::COMMAND_UNZIP, $command, TRUE, $options
             );
         } catch (Engine_Exception $e) {
-           print_r($e);
+           throw new Exception($e);
         }
         $output = $shell->get_output();
 
@@ -490,14 +564,55 @@ class Wordpress extends Daemon
                 self::COMMAND_MV, $command, TRUE, $options
             );
         } catch (Engine_Exception $e) {
-           print_r($e);
+           throw new Exception($e);
+           
+        }
+        $output = $shell->get_output();
+        $folder = new Folder($this->get_project_path('wordpress'));
+        $folder->delete(true);
+
+        $file = new File($path_wordpress.'/'.$version_name);
+        if($file->exists() && (!$file->is_directory()))
+            $file->delete();
+        return $output;
+    }
+    function download_version($version_file_name)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $options['validate_exit_code'] = FALSE;
+        
+        $path_versions = self::PATH_VERSIONS;
+        $path_file = $path_versions.$version_file_name;
+
+        $file = new File($path_file, TRUE);
+        if($file->exists())
+           return FALSE;
+         
+        $shell = new Shell();
+        $command = "https://wordpress.org/$version_file_name -P $path_versions";
+        try {
+            $retval = $shell->execute(
+                self::COMMAND_WGET, $command, TRUE, $options
+            );
+        } catch (Engine_Exception $e) {
+           throw new Exception($e);
         }
         $output = $shell->get_output();
 
-        $folder = new Folder($this->get_project_path('wordpress'));
-        $folder->delete(true);
+    }
+    function delete_version($version_file_name)
+    {
+        clearos_profile(__METHOD__, __LINE__);
         
-        return $output;
+        $path_versions = self::PATH_VERSIONS;
+        $path_file = $path_versions.$version_file_name;
+
+        $file = new File($path_file, TRUE);
+        if(!$file->exists())
+           return FALSE;
+        $file->delete();
+            return TRUE;
     }
     /**
      * List of project.
@@ -527,8 +642,80 @@ class Wordpress extends Daemon
     function delete_folder($folder_name)
     {
         clearos_profile(__METHOD__, __LINE__);
-
+        $this->get_database_name($folder_name);
+        $this->do_backup_folder($folder_name);
         $folder = new Folder($this->get_project_path($folder_name));
         $folder->delete(true);
+    }
+    function do_backup_folder($folder_name)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+        $folder_path = $this->get_project_path($folder_name);
+
+        $zip_path = self::PATH_WORDPRESS.'/'.$folder_name.'__'.date('y-m-d-H-i-s').'.zip';
+        $command = "-r $zip_path $folder_path";
+        
+        $options['validate_exit_code'] = FALSE;
+        $shell = new Shell();
+        try {
+            $retval = $shell->execute(
+                self::COMMAND_ZIP, $command, TRUE, $options
+            );
+        } catch (Engine_Exception $e) {
+           throw new Exception($e);
+        }
+        $output = $shell->get_output();
+        $file = new File($zip_path);
+        if($file->exists() && (!$file->is_directory()))
+        {
+            $file->move_to(self::PATH_BACKUP);
+        }
+    }
+    function get_database_name($folder_name)
+    {
+        $folder_path = $this->get_project_path($folder_name);
+        $main_file = $folder_path.self::CONFIG_MAIN_FILE_NAME;
+        
+        $file = new File($main_file,TRUE);
+        $line = $file->lookup_line("/DB_NAME/");
+        preg_match_all('/".*?"|\'.*?\'/', $line, $matches);
+        $database_name = trim($matches[0][1],"'");
+        return $database_name;
+    }
+    function delete_database($database_name, $root_username, $root_password)
+    {
+        $command = "mysql -u $root_username -p$root_password -e \"DROP DATABASE $database_name\"";
+        $shell = new Shell();
+        try {
+            $retval = $shell->execute(
+                self::COMMAND_MYSQL, $command, FALSE, $options
+            );
+        } catch (Engine_Exception $e) {
+            throw new Exception($e->get_message());
+        }
+        $output = $shell->get_output();
+        $output_message = strtolower($output);
+        if (strpos($output_message, 'error') !== false)
+            throw new Exception(lang('wordpress_unable_connect_via_root_user'));
+        
+    }
+    function backup_database($database_name, $root_username, $root_password)
+    {
+        $sql_file_path = self::PATH_BACKUP.$database_name.'__'.date('y-m-d-H-i-s').'.sql';
+        $command = "mysql -u $root_username -p$root_password -e \"mysqldump $database_name > $sql_file_path\"";
+        //echo $command; die;
+        $shell = new Shell();
+        try {
+            $retval = $shell->execute(
+                self::COMMAND_MYSQL, $command, FALSE, $options
+            );
+        } catch (Engine_Exception $e) {
+            throw new Exception($e->get_message());
+        }
+        $output = $shell->get_output();
+        $output_message = strtolower($output);
+        if (strpos($output_message, 'error') !== false)
+            throw new Exception(lang('wordpress_unable_connect_via_root_user'));
+        
     }   
 }

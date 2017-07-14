@@ -45,4 +45,5 @@ $app['requires'] = array(
 $app['core_directory_manifest'] = array(
     '/var/clearos/wordpress' => array(),
     '/var/clearos/wordpress/backup' => array(),
+    '/var/clearos/wordpress/verions' => array(),
 );

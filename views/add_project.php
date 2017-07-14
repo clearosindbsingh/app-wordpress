@@ -30,6 +30,7 @@ echo field_input('database_user_name', 'testuser', "Database User");
 echo field_password('database_user_password', '', "User Password");
 echo field_input('root_username', 'root', "MYSQL Root Username");
 echo field_password('root_password', '', "MYSQL Root Password");
+echo field_dropdown('wordpress_version', $versions, $default_version, 'Wordpress Version');
 echo field_button_set(
     array(form_submit_custom('submit', "Save", 'high'))
 );

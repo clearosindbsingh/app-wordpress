@@ -11,3 +11,7 @@ $lang['wordpress_folder_already_exists'] = 'This project folder already exists, 
 $lang['wordpress_unable_connect_via_root_user'] = 'Unable to connect via root user, please provide right credintials';
 $lang['wordpress_database_already_exits'] = 'Same name Database already exists, Please choose different';
 $lang['wordpress_database_not_exits'] = 'Database not exists';
+$lang['wordpress_project_add_success'] = 'Project Added successfully';
+$lang['wordpress_project_delete_success'] = 'Project deleted successfully';
+$lang['wordpress_version_download_success'] = 'Wordpress version downloaded successfully';
+$lang['wordpress_version_delete_success'] = 'Wordpress version deleted successfully';
