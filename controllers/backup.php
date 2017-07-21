@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Version controller.
+ * Backup controller.
  *
  * @category   Apps
  * @package    WordPress
@@ -46,42 +46,57 @@
  * @link    http://www.clearfoundation.com/docs/developer/apps/wordpress/
  */
 
-class Version extends ClearOS_Controller
+class Backup extends ClearOS_Controller
 {
-	/**
-     * Download Version file on local system
+    /**
+     * WordPress Backup controller.
      *
-     * @param string $file_name File Name 
-     * @return redirect to index after download 
+     * @return view
+     */
+    function index()
+    {
+		// Load libraries
+    	//---------------
+
+		$this->lang->load('wordpress');
+		$this->load->library('wordpress/Wordpress');
+
+		$data['backups'] = $this->wordpress->get_backup_list();
+		$this->page->view_form('backups', $data, lang('wordpress_available_backup'));
+	}
+	/**
+     * Download Backup file
+     *
+     * @param string $file_name File Name
+     * @return Start dorce download 
      */ 
     function download($file_name)
 	{
-		// Load dependencies
-        //------------------
+		// Load libraries
+        //---------------
 
 		$this->lang->load('wordpress');
-		$this->load->library('wordpress/Wordpress');
 
-		$this->wordpress->download_version($file_name);
-		$this->page->set_message(lang('wordpress_version_download_success'), 'info');
-		redirect('/wordpress');
+		$this->load->library('wordpress/Wordpress');
+		$this->wordpress->download_backup($file_name);
 	}
 	/**
-     * Delete Version file on local system
+     * Delete wordpress version
      *
-     * @param string $file_name File Name 
-     * @return redirect to index after delete 
-     */ 
+     * @param @string $file_name File name
+     *
+     * @return @rediret load backup index page
+     */
 	function delete($file_name)
 	{
-		// Load dependencies
-        //------------------
+		// Load libraries
+        //---------------
 
 		$this->lang->load('wordpress');
 		$this->load->library('wordpress/Wordpress');
 
-		$this->wordpress->delete_version($file_name);
-		$this->page->set_message(lang('wordpress_version_delete_success'), 'info');
-		redirect('/wordpress');
+		$this->wordpress->delete_backup($file_name);
+		$this->page->set_message(lang('wordpress_backup_delete_success'), 'info');
+		redirect('/wordpress/backup');
 	}
 }

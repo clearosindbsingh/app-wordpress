@@ -5,10 +5,11 @@
  *
  * @category   Apps
  * @package    WordPress
- * @subpackage View
- * @author     Your name <your@e-mail>
- * @copyright  2013 Your name / Company
- * @license    Your license
+ * @subpackage Views
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2017 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link    http://www.clearfoundation.com/docs/developer/apps/wordpress/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -22,39 +23,22 @@ $this->lang->load('wordpress');
 ///////////////////////////////////////////////////////////////////////////////
 
 echo form_open('wordpress/addproject');
-echo form_header("Add a new Wordpress Project");
-echo field_input('folder_name', '', "Folder Name");
-echo field_dropdown('use_exisiting_database', array('Yes' => 'Yes', 'No' => 'No'), 'No', 'Use Existing Database');
-echo field_input('database_name', '', "Database Name");
-echo field_input('database_user_name', 'testuser', "Database User");
-echo field_password('database_user_password', '', "User Password");
-echo field_input('root_username', 'root', "MYSQL Root Username");
-echo field_password('root_password', '', "MYSQL Root Password");
-echo field_dropdown('wordpress_version', $versions, $default_version, 'Wordpress Version');
+echo form_header(lang('wordpress_add_project'));
+echo field_input('folder_name', '', lang('wordpress_folder_name'));
+echo field_dropdown('use_exisiting_database', array('Yes' => lang('wordpress_select_yes'), 'No' => lang('wordpress_select_no')), 'No', lang('wordpress_use_existing_database'));
+echo field_input('database_name', '', lang('wordpress_database_name'));
+echo field_input('database_user_name', 'testuser', lang('wordpress_database_username'));
+echo field_password('database_user_password', '', lang('wordpress_database_password'));
+echo field_input('root_username', 'root', lang('wordpress_mysql_root_username'));
+echo field_password('root_password', '', lang('wordpress_mysql_root_password'));
+echo field_dropdown('wordpress_version', $versions, $default_version, lang('wordpress_wordpress_version'));
 echo field_button_set(
-    array(form_submit_custom('submit', "Save", 'high'))
+    array(
+    	anchor_cancel('/app/wordpress'),
+    	form_submit_add('submit', 'high')
+    )
 );
 echo form_footer();
 echo form_close();
 
 ?>
-<script type="text/javascript">
-	$(function(e){
-		selectDatabase();
-		$("#use_exisiting_database").change(function(){
-			selectDatabase();
-		})
-	})
-	function selectDatabase()
-	{
-		var option = $("#use_exisiting_database").val();
-		if(option == "Yes")
-		{
-			$("#database_name_label").text("Existing DB Name");
-		}
-		else
-		{
-			$("#database_name_label").text("New DB Name");
-		}
-	}
-</script>

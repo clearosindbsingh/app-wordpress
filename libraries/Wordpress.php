@@ -105,7 +105,7 @@ clearos_load_library('base/Validation_Exception');
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2005-2017 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/content_filter/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/wordpress/
  */
 
 class Wordpress extends Daemon
@@ -151,7 +151,7 @@ class Wordpress extends Daemon
     /**
      * Get Project path
      *
-     * @param $folder_name Folder Name
+     * @param @string $folder_name Folder Name
      *
      * @return @string path of folder
      */
@@ -160,70 +160,89 @@ class Wordpress extends Daemon
         clearos_profile(__METHOD__, __LINE__);
         return self::PATH_WORDPRESS.'/'.$folder_name.'/';
     }
+    /**
+     * Get Wordpress version
+     *
+     * @return @array Array of available versions
+     */
     function get_versions()
     {
         $versions = array(
                 array(
                     'version' => 'latest',
                     'download_url' => 'https://wordpress.org/latest.zip',
-                    'deletable' => false,
+                    'deletable' => FALSE,
                     'size' => '',
                 ),
                 array(
                     'version' => '4.8',
                     'download_url' => 'https://wordpress.org/wordpress-4.8.zip',
-                    'deletable' => true,
+                    'deletable' => TRUE,
                     'size' => '',
                 ),
                 array(
                     'version' => '4.7.5',
                     'download_url' => 'https://wordpress.org/wordpress-4.7.5.zip',
-                    'deletable' => true,
+                    'deletable' => TRUE,
                     'size' => '',
                 ),
                 array(
                     'version' => '4.7.4',
                     'download_url' => 'https://wordpress.org/wordpress-4.7.4.zip',
-                    'deletable' => true,
+                    'deletable' => TRUE,
                     'size' => '',
                 ),
             );
-        foreach ($versions as $key => $value) 
-        {
+        foreach ($versions as $key => $value) {
             $versions[$key]['file_name'] = basename($versions[$key]['download_url']);
             $versions[$key]['clearos_path'] = $this->get_wordpress_version_downloaded_path(basename($versions[$key]['download_url']));
         }
         return $versions;
     }
+    /**
+     * Get local system download Wordpress version path
+     * so system can copy from this path to new folder path 
+     * 
+     * @param @string $version_name zipped version name 
+     *
+     * @return @string $zip_folder if downloaded & available | FALSE if zip file is not available or not downloaded
+     */
     function get_wordpress_version_downloaded_path($version_name)
     {
         $zip_folder = self::PATH_VERSIONS.$version_name;
-        $folder = new Folder($zip_folder,TRUE);
-        if($folder->exists())
+        $folder = new Folder($zip_folder, TRUE);
+        if ($folder->exists())
             return $zip_folder;
         return FALSE;
 
     }
 
     /**
-     * Adds A new project.
+     * Add a new project.
      *
-     * @param $folder_name Folder name
-     * @param $database_name Database name
-     * @param $database_user Database user
-     * @param $ Project name
+     * @param string $folder_name Folder Name            
+     * @param string $database_name Database name 
+     * @param string $database_username Database user 
+     * @param string $database_user_password Database user password 
+     * @param string $root_username Root username for root permissions 
+     * @param string $root_password Root password 
+     * @param string $use_exisiting_database Yes / No if you want to use existing database
+     * @param string $wordpress_version_file selected Wordpress version zip file name
      *
-     * @return vois
+     * @return void
      */
 
-    public function add_project($folder_name, $database_name, $database_username, $database_user_password, $root_username, $root_password, $use_exisiting_database = "No", $wordpress_version_file)
+    public function add_project(
+        $folder_name, $database_name, $database_username, $database_user_password,
+        $root_username, $root_password, $use_exisiting_database = "No", $wordpress_version_file = 'latest.zip'
+        ) 
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $options['validate_exit_code'] = FALSE;
         $shell = new Shell();
 
-        if($use_exisiting_database == "No")
+        if ($use_exisiting_database == "No")
             $command = "mysql -u $root_username -p$root_password -e \"create database $database_name; GRANT ALL PRIVILEGES ON $database_name.* TO $database_username@localhost IDENTIFIED BY '$database_user_password'\"";
         else
             $command = "mysql -u $root_username -p$root_password -e \"GRANT ALL PRIVILEGES ON $database_name.* TO $database_username@localhost IDENTIFIED BY '$database_user_password'\"";
@@ -237,7 +256,7 @@ class Wordpress extends Daemon
         }
         $output = $shell->get_output();
         $output_message = strtolower($output[0]);
-        if (strpos($output_message, 'error') !== false)
+        if (strpos($output_message, 'error') !== FALSE)
             throw new Exception($output_message);
 
         $this->create_project_folder($folder_name);
@@ -251,7 +270,7 @@ class Wordpress extends Daemon
     /**
      * Copy Config File from sample file 
      *
-     * @param $folder_name Folder Name
+     * @param string $folder_name Folder Name
      *
      * @return void
      */
@@ -263,64 +282,65 @@ class Wordpress extends Daemon
         $sample_file = $folder_path.self::CONFIG_SAMPLE_FILE_NAME;
         $main_file = $folder_path.self::CONFIG_MAIN_FILE_NAME;
 
-        $sample_file_obj = new File($sample_file,TRUE);
-        $main_file_obj = new File($main_file,TRUE);
-        if(!$main_file_obj->exists())
+        $sample_file_obj    = new File($sample_file, TRUE);
+        $main_file_obj      = new File($main_file, TRUE);
+
+        if (!$main_file_obj->exists())
             $sample_file_obj->copy_to($main_file);
     }
     /**
      * Config database name in config file
      *
-     * @param $folder_name Folder Name
-     * @param $database_name Database Name
+     * @param string $folder_name Folder Name
+     * @param string $database_name Database Name
      *
      * @return @void
      */
-    function set_database_name($folder_name,$database_name)
+    function set_database_name($folder_name, $database_name)
     {
         $folder_path = $this->get_project_path($folder_name);
         $main_file = $folder_path.self::CONFIG_MAIN_FILE_NAME;
 
-        $file = new File($main_file,TRUE);
+        $file = new File($main_file, TRUE);
 
         $replace = "define('DB_NAME', '$database_name');";
-        $file->replace_lines("/DB_NAME/",$replace,1);
+        $file->replace_lines("/DB_NAME/", $replace, 1);
     }
     /**
      * Change database user in config file
      *
-     * @param $folder_name Folder Name
-     * @param $database_user Database User
+     * @param string $folder_name Folder Name
+     * @param string $database_username Database User
      *
      * @return @void
      */
-    function set_database_user($folder_name,$database_username)
+    function set_database_user($folder_name, $database_username)
     {
         $folder_path = $this->get_project_path($folder_name);
         $main_file = $folder_path.self::CONFIG_MAIN_FILE_NAME;
         
-        $file = new File($main_file,TRUE);
+        $file = new File($main_file, TRUE);
 
         $replace = "define('DB_USER', '$database_username');";
-        $file->replace_lines("/DB_USER/",$replace,1);
+        $file->replace_lines("/DB_USER/", $replace, 1);
     }
     /**
      * Change database password in config file
      *
-     * @param $folder_name Folder Name
-     * @param $database_password Database Password
+     * @param string $folder_name Folder Name
+     * @param string $database_user_password Database Password
      *
      * @return @void
      */
-    function set_database_password($folder_name,$database_user_password)
+    function set_database_password($folder_name, $database_user_password)
     {
         $folder_path = $this->get_project_path($folder_name);
         $main_file = $folder_path.self::CONFIG_MAIN_FILE_NAME;
         
-        $file = new File($main_file,TRUE);
+        $file = new File($main_file, TRUE);
 
         $replace = "define('DB_PASSWORD', '$database_user_password');";
-        $file->replace_lines("/DB_PASSWORD/",$replace,1);
+        $file->replace_lines("/DB_PASSWORD/", $replace, 1);
     }
     /**
      * Validate Folder Name.
@@ -339,6 +359,13 @@ class Wordpress extends Daemon
         else if($this->check_folder_exists($folder_name))
             return lang('wordpress_folder_already_exists');
     }
+    /**
+     * Validate Folder name must be exists.
+     *
+     * @param string $folder_name Folder name
+     *
+     * @return string error message if Folder name is not exists
+     */
     public function validate_folder_name_exists($folder_name)
     {
         clearos_profile(__METHOD__, __LINE__);
@@ -369,7 +396,7 @@ class Wordpress extends Daemon
         }
         $output = $shell->get_output();
         $output_message = strtolower($output);
-        if (strpos($output_message, 'error') !== false)
+        if (strpos($output_message, 'error') !== FALSE)
             return lang('wordpress_unable_connect_via_root_user');
         else if($output)
             return lang('wordpress_database_already_exits');
@@ -398,7 +425,7 @@ class Wordpress extends Daemon
         }
         $output = $shell->get_output();
         $output_message = strtolower($output);
-        if (strpos($output_message, 'error') !== false)
+        if (strpos($output_message, 'error') !== FALSE)
             return lang('wordpress_unable_connect_via_root_user');
         else if(!$output)
             return lang('wordpress_database_not_exits');
@@ -471,24 +498,22 @@ class Wordpress extends Daemon
     /**
      * Check Folder Exists.
      *
-     * @param string $folder_name Folder Name
+     * @param string $folder_name Folder name
      *
-     * @return True if exists
+     * @return TRUE if exists, FALSE if not exists 
      */
     function check_folder_exists($folder_name)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $wpfolder = new Folder(self::PATH_WORDPRESS,TRUE);
+        $wpfolder = new Folder(self::PATH_WORDPRESS, TRUE);
         $project_path = self::PATH_WORDPRESS.'/'.$folder_name;
-        if(!$wpfolder->exists())
-        {
+        if (!$wpfolder->exists()) {
             $wpfolder->create('root', 'root', 0777);
             return FALSE;
         }
-        $project_folder = new Folder($project_path,TRUE);
-        if($project_folder->exists())
-        {
+        $project_folder = new Folder($project_path, TRUE);
+        if ($project_folder->exists()) {
             return TRUE;
         }
         return FALSE;
@@ -504,8 +529,7 @@ class Wordpress extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if($this->check_folder_exists($folder_name))
-        {
+        if ($this->check_folder_exists($folder_name)) {
             return FALSE;
         }
         $new_folder = new Folder(self::PATH_WORDPRESS.'/'.$folder_name, TRUE);
@@ -515,9 +539,10 @@ class Wordpress extends Daemon
     /**
      * Download and setup wordpress folder.
      *
-     * @param string $folder_name Folder Name
+     * @param string $folder_name Folder name
+     * @param string $version_name Version name
      *
-     * @return
+     * @return void
      */
     function put_wordpress($folder_name, $version_name)
     {
@@ -527,13 +552,14 @@ class Wordpress extends Daemon
 
         //echo $this->get_wordpress_version_downloaded_path($version_name); die;
         $file = new File($this->get_wordpress_version_downloaded_path($version_name));
-        if(!$file->exists())
+        if (!$file->exists())
             return FALSE;
         $file->copy_to($path_wordpress);
 
 
-        //echo "<pre>";
-
+        /*
+        * This commented code deprecated
+        */
 
         /*$command = "https://wordpress.org/latest.zip -P $path_wordpress";
         try {
@@ -549,33 +575,41 @@ class Wordpress extends Daemon
         $options['validate_exit_code'] = FALSE;
 
         $command = $path_wordpress."/$version_name -d ".$path_wordpress;
+
         try {
             $retval = $shell->execute(
                 self::COMMAND_UNZIP, $command, TRUE, $options
             );
         } catch (Engine_Exception $e) {
-           throw new Exception($e);
+            throw new Exception($e);
         }
         $output = $shell->get_output();
 
         $command = $path_wordpress."/wordpress/* ".$path_wordpress.'/'.$folder_name;
+
         try {
             $retval = $shell->execute(
                 self::COMMAND_MV, $command, TRUE, $options
             );
         } catch (Engine_Exception $e) {
-           throw new Exception($e);
-           
+            throw new Exception($e);
         }
         $output = $shell->get_output();
         $folder = new Folder($this->get_project_path('wordpress'));
-        $folder->delete(true);
-
+        $folder->delete(TRUE);
         $file = new File($path_wordpress.'/'.$version_name);
+
         if($file->exists() && (!$file->is_directory()))
             $file->delete();
         return $output;
     }
+    /**
+     * Download wordpress version from official website.
+     *
+     * @param string $version_file_name Zip file name
+     *
+     * @return TRUE if download completed, FALSE if folder exists, ERROR if something goes wrong
+    **/
     function download_version($version_file_name)
     {
         clearos_profile(__METHOD__, __LINE__);
@@ -596,11 +630,18 @@ class Wordpress extends Daemon
                 self::COMMAND_WGET, $command, TRUE, $options
             );
         } catch (Engine_Exception $e) {
-           throw new Exception($e);
+            throw new Exception($e);
         }
         $output = $shell->get_output();
-
+        return TRUE;
     }
+    /**
+     * Delete downloaded wordpress version.
+     *
+     * @param string $version_file_name Zip file name
+     *
+     * @return TRUE if delete completed, FALSE if file not exists, ERROR if something goes wrong 
+     */
     function delete_version($version_file_name)
     {
         clearos_profile(__METHOD__, __LINE__);
@@ -609,7 +650,7 @@ class Wordpress extends Daemon
         $path_file = $path_versions.$version_file_name;
 
         $file = new File($path_file, TRUE);
-        if(!$file->exists())
+        if (!$file->exists())
            return FALSE;
         $file->delete();
             return TRUE;
@@ -617,8 +658,7 @@ class Wordpress extends Daemon
     /**
      * List of project.
      *
-     *
-     * @return list of all projects under wordpress
+     * @return array $list of all projects under wordpress
      */
     function get_project_list()
     {
@@ -626,9 +666,8 @@ class Wordpress extends Daemon
 
         $list = array();
         $folder = new Folder(self::PATH_WORDPRESS);
-        if($folder->exists())
-        {
-           $list = $folder->get_listing(true,false);
+        if ($folder->exists()) {
+            $list = $folder->get_listing(TRUE, FALSE);
         }
         return $list;
     }
@@ -645,14 +684,21 @@ class Wordpress extends Daemon
         $this->get_database_name($folder_name);
         $this->do_backup_folder($folder_name);
         $folder = new Folder($this->get_project_path($folder_name));
-        $folder->delete(true);
+        $folder->delete(TRUE);
     }
+    /**
+     * Create backup of given project folder.
+     *
+     * @param string $folder_name Folder Name
+     *
+     * @return void
+     */
     function do_backup_folder($folder_name)
     {
         clearos_profile(__METHOD__, __LINE__);
         $folder_path = $this->get_project_path($folder_name);
 
-        $zip_path = self::PATH_WORDPRESS.'/'.$folder_name.'__'.date('y-m-d-H-i-s').'.zip';
+        $zip_path = self::PATH_WORDPRESS.'/'.$folder_name.'__'.date('Y-m-d-H-i-s').'.zip';
         $command = "-r $zip_path $folder_path";
         
         $options['validate_exit_code'] = FALSE;
@@ -662,26 +708,41 @@ class Wordpress extends Daemon
                 self::COMMAND_ZIP, $command, TRUE, $options
             );
         } catch (Engine_Exception $e) {
-           throw new Exception($e);
+            throw new Exception($e);
         }
         $output = $shell->get_output();
         $file = new File($zip_path);
-        if($file->exists() && (!$file->is_directory()))
-        {
+        if ($file->exists() && !$file->is_directory()) {
             $file->move_to(self::PATH_BACKUP);
         }
     }
+    /**
+     * Get database name from config file.
+     *
+     * @param string $folder_name Project folder name
+     *
+     * @return string $database_name Database Name
+     */
     function get_database_name($folder_name)
     {
         $folder_path = $this->get_project_path($folder_name);
         $main_file = $folder_path.self::CONFIG_MAIN_FILE_NAME;
         
-        $file = new File($main_file,TRUE);
+        $file = new File($main_file, TRUE);
         $line = $file->lookup_line("/DB_NAME/");
         preg_match_all('/".*?"|\'.*?\'/', $line, $matches);
-        $database_name = trim($matches[0][1],"'");
+        $database_name = trim($matches[0][1], "'");
         return $database_name;
     }
+    /**
+     * Delete MYSQL database.
+     *
+     * @param string $database_name Database Name
+     * @param string $root_username Root Username
+     * @param string $root_password Root Password
+     *
+     * @return Exception is somethings goes wrong with MYSQL 
+    */
     function delete_database($database_name, $root_username, $root_password)
     {
         $command = "mysql -u $root_username -p$root_password -e \"DROP DATABASE $database_name\"";
@@ -695,13 +756,22 @@ class Wordpress extends Daemon
         }
         $output = $shell->get_output();
         $output_message = strtolower($output);
-        if (strpos($output_message, 'error') !== false)
+
+        if (strpos($output_message, 'error') !== FALSE)
             throw new Exception(lang('wordpress_unable_connect_via_root_user'));
-        
     }
+    /**
+     * Backup MYSQL database.
+     *
+     * @param string $database_name Database Name
+     * @param string $root_username Root Username
+     * @param string $root_password Root Password
+     *
+     * @return Exception is somethings goes wrong with MYSQL 
+    */
     function backup_database($database_name, $root_username, $root_password)
     {
-        $sql_file_path = self::PATH_BACKUP.$database_name.'__'.date('y-m-d-H-i-s').'.sql';
+        $sql_file_path = self::PATH_BACKUP.$database_name.'__'.date('Y-m-d-H-i-s').'.sql';
         $command = "mysql -u $root_username -p$root_password -e \"mysqldump $database_name > $sql_file_path\"";
         //echo $command; die;
         $shell = new Shell();
@@ -714,8 +784,77 @@ class Wordpress extends Daemon
         }
         $output = $shell->get_output();
         $output_message = strtolower($output);
-        if (strpos($output_message, 'error') !== false)
+        if (strpos($output_message, 'error') !== FALSE)
             throw new Exception(lang('wordpress_unable_connect_via_root_user'));
         
-    }   
+    }
+    /**
+     * List of avalable Project & SQL backups.
+     *
+     * @return list of all backups under wordpress including database
+    */
+    function get_backup_list()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $list = array();
+        $folder = new Folder(self::PATH_BACKUP);
+        if ($folder->exists()) {
+            $list = $folder->get_listing(TRUE, TRUE);
+        }
+        return $list;
+    }
+    /**
+     * Start force download of backup
+     *
+     * @param string $file_name Backup file name
+     * @return void
+    */
+    function download_backup($file_name)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+        // Make file full path
+        $file_path = self::PATH_BACKUP.$file_name;
+
+        // Check file exists
+        if (file_exists($file_path)) {
+            // Getting file extension.
+            $extension = explode('.', $file_name);
+            $extension = $extension[count($extension)-1]; 
+            // For Gecko browsers
+            header('Content-Transfer-Encoding: binary');  
+            // Supports for download resume
+            header('Accept-Ranges: bytes');  
+            // Calculate File size
+            header('Content-Length: ' . filesize($file_path));  
+            header('Content-Encoding: none');
+            // Change the mime type if the file is not PDF
+            header('Content-Type: application/'.$extension);  
+            // Make the browser display the Save As dialog
+            header('Content-Disposition: attachment; filename=' . $file_name);  
+            readfile($file_path); 
+            exit;
+        }
+        else
+            throw new File_Not_Found_Exception(lang('wordpress_file_not_found'));
+    }
+    /**
+     * Delete backup from system
+     *
+     * @param string $file_name Backup file name
+     * @return TRUE if deletion successful, Exception if something wrong in deletion
+    **/
+    function delete_backup($file_name)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $file_path = self::PATH_BACKUP.$file_name;
+        $file = new File($file_path);
+
+        if (!$file->is_directory())
+            $file->delete(TRUE);
+        else
+            throw new File_Not_Found_Exception(lang('wordpress_file_not_found'));
+        return TRUE;
+    }
 }

@@ -1,15 +1,34 @@
 <?php
 
 /**
- * WordPress controller.
+ * Version controller.
  *
  * @category   Apps
  * @package    WordPress
- * @subpackage Views
- * @author     Your name <your@e-mail>
- * @copyright  2017 Your name / Company
- * @license    Your license
+ * @subpackage Controller
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2017 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link    http://www.clearfoundation.com/docs/developer/apps/wordpress/
  */
+
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -21,9 +40,10 @@
  * @category   Apps
  * @package    WordPress
  * @subpackage Controllers
- * @author     Your name <your@e-mail>
- * @copyright  2017 Your name / Company
- * @license    Your license
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2017 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link    http://www.clearfoundation.com/docs/developer/apps/wordpress/
  */
 
 class Wordpress extends ClearOS_Controller
@@ -51,14 +71,19 @@ class Wordpress extends ClearOS_Controller
         //-----------
         $this->page->view_form('wordpress', $data, lang('wordpress_app_name'));
     }
-
-    /*
-    Add Project
-    */
+	/**
+     * Add a new Project
+     * 
+     * @return load view
+     */ 
 	function addproject()
 	{
+		// Load dependencies
+        //------------------
+
 		$this->lang->load('wordpress');
 		$this->load->library('wordpress/Wordpress');
+
 		$version_all = $this->wordpress->get_versions();
 		$versions = array();
 		foreach ($version_all as $key => $value) 
@@ -68,6 +93,9 @@ class Wordpress extends ClearOS_Controller
 		}
 		if($_POST)
 		{
+			// Handle Form 
+        	//------------------
+
 			$use_exisiting_database = $this->input->post('use_exisiting_database');
 			$this->form_validation->set_policy('folder_name', 'wordpress/Wordpress', 'validate_folder_name', TRUE);
 			if($use_exisiting_database == "Yes")
@@ -91,7 +119,7 @@ class Wordpress extends ClearOS_Controller
 				$wordpress_version = $this->input->post('wordpress_version');
 				try {
 					$this->wordpress->add_project($folder_name, $database_name, $database_username, $database_user_password, $root_username, $root_password, $use_exisiting_database, $wordpress_version);
-					//$this->wordpress->create_project_folder($folder_name);
+					//$this->wordpress->create_project_folder($folder_name);   
 					//$this->wordpress->put_wordpress($folder_name);
 					$this->page->set_message(lang('wordpress_project_add_success'), 'info');
 					redirect('/wordpress');
@@ -104,44 +132,49 @@ class Wordpress extends ClearOS_Controller
 		$data['default_version'] = 'latest.zip';
 		$this->page->view_form('add_project', $data, lang('wordpress_app_name'));
 	}
-	/*
-    Delete Project
-    */
+	/**
+     * Delete Project
+     *
+     * @param string $folder_name Folder Name 
+     * @return redirect to index after delete
+     */ 
 	function delete($folder_name)
 	{
+		// Load dependencies
+        //------------------
+
 		$this->lang->load('wordpress');
 		$this->load->library('wordpress/Wordpress');
 
-		if($_POST)
-		{
+		if ($_POST) {
 			$database_name = '';
 			$folder_name = $this->input->post('folder_name');
 			$delete_database = $this->input->post('delete_database');
-			if($folder_name)
+
+			if ($folder_name)
 				$database_name = $this->wordpress->get_database_name($folder_name);
 			$_POST['database_name'] = $database_name;
 			$_POST['folder_name'] = $folder_name;
 			$this->form_validation->set_policy('folder_name', 'wordpress/Wordpress', 'validate_folder_name_exists', TRUE);
-			if($delete_database)
-			{
+
+			if ($delete_database) {
 				$this->form_validation->set_policy('database_name', 'wordpress/Wordpress', 'validate_existing_database', TRUE);
 				$this->form_validation->set_policy('root_username', 'wordpress/Wordpress', 'validate_root_username', TRUE);
 				$this->form_validation->set_policy('root_password', 'wordpress/Wordpress', 'validate_root_password', TRUE);
 			}
 			$form_ok = $this->form_validation->run();
-			print_r(validation_errors());
-			if($form_ok)
-			{
+
+			if ($form_ok) {
 				$folder_name = $this->input->post('folder_name');
 				$database_name = $this->input->post('database_name');
 				$root_username = $this->input->post('root_username');
 				$root_password = $this->input->post('root_password');
-				try {
-					
+
+				try {	
 					$this->wordpress->delete_folder($folder_name);
-					if($delete_database)
-					{
-						//$this->wordpress->backup_database($database_name, $root_username, $root_password);
+
+					if ($delete_database) {
+						//$this->wordpress->backup_database($database_name, $root_username, $root_password); /// due to some temp error I commented it
 						$this->wordpress->delete_database($database_name, $root_username, $root_password);
 					}
 					$this->page->set_message(lang('wordpress_project_delete_success'), 'info');
@@ -151,7 +184,5 @@ class Wordpress extends ClearOS_Controller
 				}
 			}
 		}
-
-		
 	}
 }
