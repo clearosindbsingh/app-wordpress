@@ -601,6 +601,9 @@ class Wordpress extends Daemon
 
         if($file->exists() && (!$file->is_directory()))
             $file->delete();
+
+        $folder = new Folder($this->get_project_path($folder_name).'wp-content');
+        $folder->chmod(777);
         return $output;
     }
     /**
