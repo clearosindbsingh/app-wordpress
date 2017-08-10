@@ -48,40 +48,40 @@
 
 class Version extends ClearOS_Controller
 {
-	/**
-     * Download Version file on local system
-     *
-     * @param string $file_name File Name 
-     * @return redirect to index after download 
-     */ 
+    /**
+    * Download Version file on local system
+    *
+    * @param string $file_name File Name 
+    * @return redirect to index after download 
+    */ 
     function download($file_name)
-	{
-		// Load dependencies
+    {
+        // Load dependencies
         //------------------
 
-		$this->lang->load('wordpress');
-		$this->load->library('wordpress/Wordpress');
+        $this->lang->load('wordpress');
+        $this->load->library('wordpress/Wordpress');
 
-		$this->wordpress->download_version($file_name);
-		$this->page->set_message(lang('wordpress_version_download_success'), 'info');
-		redirect('/wordpress');
-	}
-	/**
-     * Delete Version file on local system
-     *
-     * @param string $file_name File Name 
-     * @return redirect to index after delete 
-     */ 
-	function delete($file_name)
-	{
-		// Load dependencies
+        $this->wordpress->download_version($file_name);
+        $this->page->set_message(lang('wordpress_version_download_success'), 'info');
+        redirect('/wordpress');
+    }
+    /**
+    * Delete Version file on local system
+    *
+    * @param string $file_name File Name 
+    * @return redirect to index after delete 
+    */ 
+    function delete($file_name)
+    {
+        // Load dependencies
         //------------------
 
-		$this->lang->load('wordpress');
-		$this->load->library('wordpress/Wordpress');
+        $this->lang->load('wordpress');
+        $this->load->library('wordpress/Wordpress');
 
-		$this->wordpress->delete_version($file_name);
-		$this->page->set_message(lang('wordpress_version_delete_success'), 'info');
-		redirect('/wordpress');
-	}
+        $this->wordpress->delete_version($file_name);
+        $this->page->set_message(lang('wordpress_version_delete_success'), 'info');
+        redirect('/wordpress');
+    }
 }

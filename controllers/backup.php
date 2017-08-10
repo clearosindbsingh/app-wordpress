@@ -49,76 +49,76 @@
 class Backup extends ClearOS_Controller
 {
     /**
-     * WordPress Backup controller.
-     *
-     * @return view
-     */
+    * WordPress Backup controller.
+    *
+    * @return view
+    */
     function index()
     {
-		// Load libraries
-    	//---------------
-
-		$this->lang->load('wordpress');
-		$this->load->library('wordpress/Wordpress');
-
-		$data['backups'] = $this->wordpress->get_backup_list();
-		$this->page->view_form('backups', $data, lang('wordpress_available_backup'));
-	}
-	/**
-     * Download Backup file
-     *
-     * @param string $file_name File Name
-     * @return Start dorce download 
-     */ 
-    function download($file_name)
-	{
-		// Load libraries
+        // Load libraries
         //---------------
 
-		$this->lang->load('wordpress');
+        $this->lang->load('wordpress');
+        $this->load->library('wordpress/Wordpress');
 
-		$this->load->library('wordpress/Wordpress');
-		$this->wordpress->download_backup($file_name);
-	}
-	/**
-     * Delete Backup view.
-     *
-     * @param string $file_name file Nane
-     *
-     * @return view
-     */
+        $data['backups'] = $this->wordpress->get_backup_list();
+        $this->page->view_form('backups', $data, lang('wordpress_available_backup'));
+    }
+    /**
+    * Download Backup file
+    *
+    * @param string $file_name File Name
+    * @return Start dorce download 
+    */ 
+    function download($file_name)
+    {
+        // Load libraries
+        //---------------
+
+        $this->lang->load('wordpress');
+
+        $this->load->library('wordpress/Wordpress');
+        $this->wordpress->download_backup($file_name);
+    }
+    /**
+    * Delete Backup view.
+    *
+    * @param string $file_name file Nane
+    *
+    * @return view
+    */
     function delete($file_name)
     {
         // Load libraries
         //---------------
         $this->lang->load('wordpress');
-		$this->load->library('wordpress/Wordpress');
+        $this->load->library('wordpress/Wordpress');
         
         // Show confirm
         //-------------
         $confirm_uri = '/app/wordpress/backup/destroy/' . $file_name;
         $cancel_uri = '/app/wordpress/backup';
-        $items = array($file_name);
         $this->page->view_confirm_delete($confirm_uri, $cancel_uri, $items);
+        $items = array($file_name);
     }
     /**
-     * Destroy wordpress version
-     *
-     * @param @string $file_name File name
-     *
-     * @return @rediret load backup index page
-     */
-	function destroy($file_name)
-	{
-		// Load libraries
+    * Destroy wordpress version
+    *
+    * @param @string $file_name File name
+    *
+    * @return @rediret load backup index page
+    */
+    function destroy($file_name)
+    {
+        // Load libraries
         //---------------
 
-		$this->lang->load('wordpress');
-		$this->load->library('wordpress/Wordpress');
+        $this->lang->load('wordpress');
+        $this->load->library('wordpress/Wordpress');
 
-		$this->wordpress->delete_backup($file_name);
-		$this->page->set_message(lang('wordpress_backup_delete_success'), 'info');
-		redirect('/wordpress/backup');
-	}
+        $this->wordpress->delete_backup($file_name);
+        $this->page->set_message(lang('wordpress_backup_delete_success'), 'info');
+        redirect('/wordpress/backup');
+    }
 
 }

@@ -218,19 +218,19 @@ class Wordpress extends Daemon
     }
 
     /**
-     * Add a new project.
-     *
-     * @param string $folder_name Folder Name            
-     * @param string $database_name Database name 
-     * @param string $database_username Database user 
-     * @param string $database_user_password Database user password 
-     * @param string $root_username Root username for root permissions 
-     * @param string $root_password Root password 
-     * @param string $use_exisiting_database Yes / No if you want to use existing database
-     * @param string $wordpress_version_file selected Wordpress version zip file name
-     *
-     * @return void
-     */
+    * Add a new project.
+    *
+    * @param string $folder_name Folder Name               
+    * @param string $database_name Database name 
+    * @param string $database_username Database user 
+    * @param string $database_user_password Database user password 
+    * @param string $root_username Root username for root permissions 
+    * @param string $root_password Root password 
+    * @param string $use_exisiting_database Yes / No if you want to use existing database
+    * @param string $wordpress_version_file selected Wordpress version zip file name
+    *
+    * @return void
+    */
 
     public function add_project(
         $folder_name, $database_name, $database_username, $database_user_password,
