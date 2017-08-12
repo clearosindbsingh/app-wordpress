@@ -508,12 +508,11 @@ class Wordpress extends Daemon
 
         $wpfolder = new Folder(self::PATH_WORDPRESS, TRUE);
         $project_path = self::PATH_WORDPRESS.'/'.$folder_name;
-        echo "sf";
+        
         if (!$wpfolder->exists()) {
-            $wpfolder->create('webconfig', 'webconfig', 775);
+            $wpfolder->create('webconfig', 'webconfig', 755);
             return FALSE;
         }
-        echo "2";
         $project_folder = new Folder($project_path, TRUE);
         if ($project_folder->exists()) {
             return TRUE;
@@ -534,10 +533,8 @@ class Wordpress extends Daemon
         if ($this->check_folder_exists($folder_name)) {
             return FALSE;
         }
-        echo "3";
         $new_folder = new Folder(self::PATH_WORDPRESS.'/'.$folder_name, TRUE);
-        $new_folder->create('webconfig', 'webconfig', 777);
-        echo "4";
+        $new_folder->create('webconfig', 'webconfig', 755);
     }
     /**
      * Download and setup wordpress folder.
@@ -589,6 +586,7 @@ class Wordpress extends Daemon
         if($file->exists() && (!$file->is_directory()))
             $file->delete();
 
+        // wp-content folder must have permission 0777
         $folder = new Folder($this->get_project_path($folder_name).'wp-content');
         $folder->chmod(777);
         return $output;
@@ -763,7 +761,7 @@ class Wordpress extends Daemon
     {
         $sql_file_path = self::PATH_BACKUP.$database_name.'__'.date('Y-m-d-H-i-s').'.sql';
         $command = "mysql -u $root_username -p$root_password -e \"mysqldump $database_name > $sql_file_path\"";
-        //echo $command; die;
+
         $shell = new Shell();
         try {
             $retval = $shell->execute(
