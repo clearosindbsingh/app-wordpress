@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Backup controller.
  *
@@ -98,8 +97,8 @@ class Backup extends ClearOS_Controller
         //-------------
         $confirm_uri = '/app/wordpress/backup/destroy/' . $file_name;
         $cancel_uri = '/app/wordpress/backup';
-        $this->page->view_confirm_delete($confirm_uri, $cancel_uri, $items);
         $items = array($file_name);
+        $this->page->view_confirm_delete($confirm_uri, $cancel_uri, $items);
     }
     /**
     * Destroy wordpress version

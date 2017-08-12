@@ -40,7 +40,19 @@ $app['requires'] = array(
 );
 
 $app['core_directory_manifest'] = array(
-    '/var/clearos/wordpress' => array(),
-    '/var/clearos/wordpress/backup' => array(),
-    '/var/clearos/wordpress/verions' => array(),
+    '/var/clearos/wordpress' => array(
+        'mode' => '0755',
+        'owner' => 'webconfig',
+        'group' => 'webconfig'
+	),
+    '/var/clearos/wordpress/backup' => array(
+        'mode' => '0755',
+        'owner' => 'webconfig',
+        'group' => 'webconfig'
+	),
+    '/var/clearos/wordpress/versions' => array(
+        'mode' => '0755',
+        'owner' => 'webconfig',
+        'group' => 'webconfig'
+	)
 );

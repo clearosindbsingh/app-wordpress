@@ -120,10 +120,10 @@ class Wordpress extends Daemon
     const PATH_BACKUP = '/var/clearos/wordpress/backup/';
     const COMMAND_MYSQLADMIN = '/usr/bin/mysqladmin';
     const COMMAND_MYSQL = '/usr/bin/mysql';
-    const COMMAND_WGET = '/bin/wget';
-    const COMMAND_ZIP = '/bin/zip';
-    const COMMAND_UNZIP = '/bin/unzip';
-    const COMMAND_MV = '/bin/mv';
+    const COMMAND_WGET = '/usr/bin/wget';
+    const COMMAND_ZIP = '/usr/bin/zip';
+    const COMMAND_UNZIP = '/usr/bin/unzip';
+    const COMMAND_MV = '/usr/bin/mv';
     const CONFIG_SAMPLE_FILE_NAME = 'wp-config-sample.php';
     const CONFIG_MAIN_FILE_NAME = 'wp-config.php';
 
@@ -508,10 +508,12 @@ class Wordpress extends Daemon
 
         $wpfolder = new Folder(self::PATH_WORDPRESS, TRUE);
         $project_path = self::PATH_WORDPRESS.'/'.$folder_name;
+        echo "sf";
         if (!$wpfolder->exists()) {
-            $wpfolder->create('root', 'root', 0775);
+            $wpfolder->create('webconfig', 'webconfig', 775);
             return FALSE;
         }
+        echo "2";
         $project_folder = new Folder($project_path, TRUE);
         if ($project_folder->exists()) {
             return TRUE;
@@ -532,9 +534,10 @@ class Wordpress extends Daemon
         if ($this->check_folder_exists($folder_name)) {
             return FALSE;
         }
+        echo "3";
         $new_folder = new Folder(self::PATH_WORDPRESS.'/'.$folder_name, TRUE);
-        $new_folder->create('root', 'root', 0777);
-
+        $new_folder->create('webconfig', 'webconfig', 777);
+        echo "4";
     }
     /**
      * Download and setup wordpress folder.
@@ -550,26 +553,10 @@ class Wordpress extends Daemon
 
         $path_wordpress = self::PATH_WORDPRESS;
 
-        //echo $this->get_wordpress_version_downloaded_path($version_name); die;
         $file = new File($this->get_wordpress_version_downloaded_path($version_name));
         if (!$file->exists())
             return FALSE;
         $file->copy_to($path_wordpress);
-
-
-        /*
-        * This commented code deprecated
-        */
-
-        /*$command = "https://wordpress.org/latest.zip -P $path_wordpress";
-        try {
-            $retval = $shell->execute(
-                self::COMMAND_WGET, $command, TRUE, $options
-            );
-        } catch (Engine_Exception $e) {
-           // print_r($e);
-        }
-        $output = $shell->get_output();*/
 
         $shell = new Shell();
         $options['validate_exit_code'] = FALSE;
@@ -578,7 +565,7 @@ class Wordpress extends Daemon
 
         try {
             $retval = $shell->execute(
-                self::COMMAND_UNZIP, $command, TRUE, $options
+                self::COMMAND_UNZIP, $command, FALSE, $options
             );
         } catch (Engine_Exception $e) {
             throw new Exception($e);
@@ -589,7 +576,7 @@ class Wordpress extends Daemon
 
         try {
             $retval = $shell->execute(
-                self::COMMAND_MV, $command, TRUE, $options
+                self::COMMAND_MV, $command, FALSE, $options
             );
         } catch (Engine_Exception $e) {
             throw new Exception($e);
@@ -630,7 +617,7 @@ class Wordpress extends Daemon
         $command = "https://wordpress.org/$version_file_name -P $path_versions";
         try {
             $retval = $shell->execute(
-                self::COMMAND_WGET, $command, TRUE, $options
+                self::COMMAND_WGET, $command, FALSE, $options
             );
         } catch (Engine_Exception $e) {
             throw new Exception($e);
@@ -708,7 +695,7 @@ class Wordpress extends Daemon
         $shell = new Shell();
         try {
             $retval = $shell->execute(
-                self::COMMAND_ZIP, $command, TRUE, $options
+                self::COMMAND_ZIP, $command, FALSE, $options
             );
         } catch (Engine_Exception $e) {
             throw new Exception($e);
