@@ -170,7 +170,7 @@ class Wordpress extends ClearOS_Controller
                 $database_name = $this->input->post('database_name');
                 $root_username = $this->input->post('root_username');
                 $root_password = $this->input->post('root_password');
-
+                
                 try {
                     $this->wordpress->delete_folder($folder_name);
 
@@ -183,6 +183,8 @@ class Wordpress extends ClearOS_Controller
                 } catch (Exception $e) {
                     $this->page->view_exception($e);
                 }
+            } else {
+                throw new Exception(validation_errors());
             }
         }
     }

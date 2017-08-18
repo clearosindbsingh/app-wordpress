@@ -43,7 +43,9 @@ cp -r * %{buildroot}/usr/clearos/apps/wordpress/
 rm -f %{buildroot}/usr/clearos/apps/wordpress/README.md
 install -d -m 0755 %{buildroot}/var/clearos/wordpress
 install -d -m 0755 %{buildroot}/var/clearos/wordpress/backup
+install -d -m 0755 %{buildroot}/var/clearos/wordpress/sites
 install -d -m 0755 %{buildroot}/var/clearos/wordpress/versions
+install -D -m 0644 packaging/app-wordpress.conf %{buildroot}/etc/httpd/conf.d/app-wordpress.conf
 
 %post
 logger -p local6.notice -t installer 'app-wordpress - installing'
@@ -87,7 +89,9 @@ exit 0
 %dir /usr/clearos/apps/wordpress
 %dir %attr(0755,webconfig,webconfig) /var/clearos/wordpress
 %dir %attr(0755,webconfig,webconfig) /var/clearos/wordpress/backup
+%dir %attr(0755,webconfig,webconfig) /var/clearos/wordpress/sites
 %dir %attr(0755,webconfig,webconfig) /var/clearos/wordpress/versions
 /usr/clearos/apps/wordpress/deploy
 /usr/clearos/apps/wordpress/language
 /usr/clearos/apps/wordpress/libraries
+/etc/httpd/conf.d/app-wordpress.conf

@@ -37,6 +37,8 @@ $app['core_requires'] = array(
 $app['requires'] = array(
     'app-web-server',
     'app-mariadb',
+    'unzip',
+    'zip',
 );
 
 $app['core_directory_manifest'] = array(
