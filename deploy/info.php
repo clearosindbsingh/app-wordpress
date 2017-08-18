@@ -54,5 +54,14 @@ $app['core_directory_manifest'] = array(
         'mode' => '0755',
         'owner' => 'webconfig',
         'group' => 'webconfig'
+    ),
+    '/var/clearos/wordpress/sites' => array(
+        'mode' => '0755',
+        'owner' => 'webconfig',
+        'group' => 'webconfig'
 	)
+);
+
+$app['core_file_manifest'] = array(
+    'app-wordpress.conf'=> array('target' => '/etc/httpd/conf.d/app-wordpress.conf'),
 );

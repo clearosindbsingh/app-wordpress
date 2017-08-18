@@ -114,8 +114,8 @@ class Wordpress extends Daemon
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////
 
-    const PATH_WEBROOT = '/var/www/html';
-    const PATH_WORDPRESS = '/var/www/html/wordpress';
+    const PATH_WEBROOT = '/var/www/html'; /// not in use
+    const PATH_WORDPRESS = '/var/clearos/wordpress/sites';
     const PATH_VERSIONS = '/var/clearos/wordpress/versions/';
     const PATH_BACKUP = '/var/clearos/wordpress/backup/';
     const COMMAND_MYSQLADMIN = '/usr/bin/mysqladmin';
