@@ -4,23 +4,25 @@ Epoch: 1
 Version: 1.0.0
 Release: 1%{dist}
 Summary: **wordpress_app_name**
-License: MyLicense
+License: GPL
 Group: ClearOS/Apps
-Packager: Packager
-Vendor: Vendor
+Packager: Xtreem Solution
+Vendor: Xtreem Solution
 Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 Requires: %{name}-core = 1:%{version}-%{release}
 Requires: app-base
 Requires: app-web-server
 Requires: app-mariadb
+Requires: unzip
+Requires: zip
 
 %description
 **wordpress_app_description**
 
 %package core
 Summary: **wordpress_app_name** - Core
-License: MyLicense
+License: LGPL
 Group: ClearOS/Libraries
 Requires: app-base-core
 Requires: mod_authnz_external

@@ -7,10 +7,10 @@
 $app['basename'] = 'wordpress';
 $app['version'] = '1.0.0';
 $app['release'] = '1';
-$app['vendor'] = 'Vendor'; // e.g. Acme Co
-$app['packager'] = 'Packager'; // e.g. Gordie Howe
-$app['license'] = 'MyLicense'; // e.g. 'GPLv3';
-$app['license_core'] = 'MyLicense'; // e.g. 'LGPLv3';
+$app['vendor'] = 'Xtreem Solution'; // e.g. Acme Co
+$app['packager'] = 'Xtreem Solution'; // e.g. Gordie Howe
+$app['license'] = 'GPL'; // e.g. 'GPLv3';
+$app['license_core'] = 'LGPL'; // e.g. 'LGPLv3';
 $app['description'] = lang('wordpress_app_description');
 
 /////////////////////////////////////////////////////////////////////////////
