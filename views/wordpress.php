@@ -18,6 +18,7 @@
 
 $this->lang->load('wordpress');
 
+$server_OK = TRUE;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form
@@ -29,6 +30,20 @@ $options['buttons']  = array(
     anchor_custom('/app/web_server', "Web Server", 'high', array('target' => '_blank')),
 );
 
+
+if ($web_server_running_status == 'stopped') {
+    echo infobox_warning(lang('base_warning'), lang('wordpress_web_server_not_running'));
+    $server_OK = FALSE;
+} else if ($mariadb_running_status != 'running') {
+    echo infobox_warning(lang('base_warning'), lang('wordpress_mariadb_server_not_running'));
+    $server_OK = FALSE;
+} else if (!$mariadb_password_status) {
+    echo infobox_warning(lang('base_warning'), lang('wordpress_mariadb_password_not_set'));
+    $server_OK = FALSE;
+} else if (!$wordpress_version_not_downloaded) {
+    echo infobox_warning(lang('base_warning'), lang('wordpress_no_wordpress_version_downloaded'));
+    $server_OK = FALSE;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Infobox
@@ -53,7 +68,11 @@ $headers = array(
 // Buttons
 ///////////////////////////////////////////////////////////////////////////////
 
-$buttons  = array(anchor_custom('/app/wordpress/addproject', lang('wordpress_add_project'), 'high', array('target' => '_self')));
+if ($server_OK) {
+   $buttons  = array(anchor_custom('/app/wordpress/addproject', lang('wordpress_add_project'), 'high', array('target' => '_self')));
+} else {
+   $buttons  = array(anchor_custom('/app/wordpress/addproject', lang('wordpress_add_project'), 'high', array('target' => '_self', 'class' => 'disabled', 'disabled' => 'disabled')));
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -65,13 +84,24 @@ foreach ($projects as $value) {
     $access_action = $base_path.$value['name'];
     $access_admin_action = $base_path.$value['name'].'/wp-admin';
     $delete_action = "javascript:";
-    $item['anchors'] = button_set(
-        array(
-        	anchor_custom($access_action, lang('wordpress_access_website'), 'high', array('target' => '_blank')),
-        	anchor_custom($access_admin_action, lang('wordpress_access_admin'), 'high', array('target' => '_blank')),
-        	anchor_delete($delete_action, 'low', array('class' => 'delete_project_anchor', 'data' => array('folder_name' => $value['name']))),
-        )
-    );
+
+    if ($server_OK) {
+        $item['anchors'] = button_set(
+            array(
+            	anchor_custom($access_action, lang('wordpress_access_website'), 'high', array('target' => '_blank')),
+            	anchor_custom($access_admin_action, lang('wordpress_access_admin'), 'high', array('target' => '_blank')),
+            	anchor_delete($delete_action, 'low', array('class' => 'delete_project_anchor', 'data' => array('folder_name' => $value['name']))),
+            )
+        );
+    } else {
+        $item['anchors'] = button_set(
+            array(
+                anchor_custom($access_action, lang('wordpress_access_website'), 'high', array('target' => '_blank', 'class' => 'disabled', 'disabled' => 'disabled')),
+                anchor_custom($access_admin_action, lang('wordpress_access_admin'), 'high', array('target' => '_blank', 'class' => 'disabled', 'disabled' => 'disabled')),
+                anchor_delete($delete_action, 'low', array('class' => 'delete_project_anchor', 'class' => 'disabled', 'disabled' => 'disabled', 'data' => array('folder_name' => $value['name']))),
+            )
+        );
+    }
     $item['details'] = array(
       $value['name']
     );

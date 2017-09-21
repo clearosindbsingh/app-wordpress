@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'wordpress';
-$app['version'] = '1.0.0';
+$app['version'] = '2.1.0';
 $app['release'] = '1';
 $app['vendor'] = 'Xtreem Solution'; // e.g. Acme Co
 $app['packager'] = 'Xtreem Solution'; // e.g. Gordie Howe
@@ -32,6 +32,7 @@ $app['core_requires'] = array(
     'mod_authz_unixgroup',
     'mod_ssl',
     'phpMyAdmin',
+    'app-flexshare-core',
 );
 
 $app['requires'] = array(
@@ -43,22 +44,22 @@ $app['requires'] = array(
 
 $app['core_directory_manifest'] = array(
     '/var/clearos/wordpress' => array(
-        'mode' => '0755',
+        'mode' => '0775',
         'owner' => 'webconfig',
         'group' => 'webconfig'
 	),
     '/var/clearos/wordpress/backup' => array(
-        'mode' => '0755',
+        'mode' => '0775',
         'owner' => 'webconfig',
         'group' => 'webconfig'
 	),
     '/var/clearos/wordpress/versions' => array(
-        'mode' => '0755',
+        'mode' => '0775',
         'owner' => 'webconfig',
         'group' => 'webconfig'
     ),
     '/var/clearos/wordpress/sites' => array(
-        'mode' => '0755',
+        'mode' => '0775',
         'owner' => 'webconfig',
         'group' => 'webconfig'
 	)

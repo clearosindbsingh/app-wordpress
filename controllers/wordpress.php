@@ -65,6 +65,10 @@ class Wordpress extends ClearOS_Controller
         $versions = $this->wordpress->get_versions();
         $data['projects'] = $projects;
         $data['versions'] = $versions;
+        $data['web_server_running_status'] = $this->wordpress->get_web_server_running_status();
+        $data['mariadb_running_status'] = $this->wordpress->get_mariadb_running_status();
+        $data['mariadb_password_status'] = $this->wordpress->get_mariadb_root_password_set_status();
+        $data['wordpress_version_not_downloaded'] = $this->wordpress->get_versions(TRUE);
         $data['base_path'] = 'https://'.$_SERVER['SERVER_ADDR'].'/wordpress/';
 
         // Load views
@@ -85,6 +89,8 @@ class Wordpress extends ClearOS_Controller
 
         $this->lang->load('wordpress');
         $this->load->library('wordpress/Wordpress');
+
+        $this->wordpress->check_dependencies();
 
         $version_all = $this->wordpress->get_versions();
         $versions = array();
@@ -175,7 +181,7 @@ class Wordpress extends ClearOS_Controller
                     $this->wordpress->delete_folder($folder_name);
 
                     if ($delete_database) {
-                        //$this->wordpress->backup_database($database_name, $root_username, $root_password); /// due to some temp error I commented it
+                        $this->wordpress->backup_database($database_name, $root_username, $root_password);
                         $this->wordpress->delete_database($database_name, $root_username, $root_password);
                     }
                     $this->page->set_message(lang('wordpress_project_delete_success'), 'info');
