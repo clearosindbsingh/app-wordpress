@@ -1,0 +1,65 @@
+<?php
+
+/**
+ * Wordpress beta list view.
+ *
+ * @category   apps
+ * @package    wordpress
+ * @subpackage views
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2017 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/wordpress/
+ */
+
+///////////////////////////////////////////////////////////////////////////////
+// Load dependencies
+///////////////////////////////////////////////////////////////////////////////
+
+if ($sites) {
+    $this->lang->load('wordpress');
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // Form
+    ///////////////////////////////////////////////////////////////////////////////
+
+    $headers = array(
+        lang('wordpress_beta_sites'),
+    );
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // Buttons
+    ///////////////////////////////////////////////////////////////////////////////
+
+    $buttons  = array();
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // Items
+    ///////////////////////////////////////////////////////////////////////////////
+
+    $items = array();
+
+    foreach ($sites as $key => $site) {
+        
+        $button = anchor_custom('/app/wordpress/existing/edit/' . $site['name'], lang('wordpress_move_btn'));
+
+        $item['anchors'] = button_set(array($button));
+        $item['details'] = array(
+            $site['name'],
+        );
+
+        $items[] = $item;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // List table
+    ///////////////////////////////////////////////////////////////////////////////
+
+
+    echo summary_table(
+        lang('wordpress_beta_sites'),
+        $buttons,
+        $headers,
+        $items
+    );
+}

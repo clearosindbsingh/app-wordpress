@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Wordpress backup controller.
+ * Wordpress dependencies controller.
  *
  * @category   apps
  * @package    wordpress
@@ -23,14 +23,14 @@ require_once $bootstrap . '/bootstrap.php';
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-require clearos_app_base('webapp') . '/controllers/webapp_backup.php';
+require clearos_app_base('webapp') . '/controllers/webapp_dependencies.php';
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Wordpress backup controller.
+ * Wordpress dependencies controller.
  *
  * @category   apps
  * @package    wordpress
@@ -41,16 +41,14 @@ require clearos_app_base('webapp') . '/controllers/webapp_backup.php';
  * @link       http://www.clearfoundation.com/docs/developer/apps/wordpress/
  */
 
-class Backup extends Webapp_Backup
+class Dependencies extends Webapp_Dependencies
 {
     /**
-     * Wordpress backup constructor.
+     * Wordpress dependencies constructor.
      */
 
     function __construct()
     {
-        $this->lang->load('wordpress');
-
-        parent::__construct('wordpress', lang('wordpress_app_name'));
+        parent::__construct('wordpress');
     }
 }
