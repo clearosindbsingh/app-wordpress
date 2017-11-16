@@ -103,7 +103,7 @@ class Webapp_Site_Driver extends Webapp_Site_Engine
     const WEBAPP_BASENAME = 'wordpress';
     const COMMAND_MYSQL = '/usr/bin/mysql';
     const COMMAND_UNZIP = '/usr/bin/unzip';
-    const FILE_CONFIG = 'configuration.php';
+    const FILE_CONFIG = 'wp-config.php';
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -215,32 +215,6 @@ class Webapp_Site_Driver extends Webapp_Site_Engine
         );
 
         $this->_put_wordpress($site, $version);
-    }
-
-    /**
-     * Get database name from config file.
-     *
-     * @param string $site site name
-     *
-     * @return string $database_name Database Name
-     */
-
-    public function get_database_name($site)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $main_file = $this->get_document_root($site) . '/' . self::FILE_CONFIG;
-
-        $file = new File($main_file, TRUE);
-
-        if (!$file->exists())
-            return '';
-
-        $line = $file->lookup_line("/db =/");
-        preg_match_all('/".*?"|\'.*?\'/', $line, $matches);
-        $database_name = trim($matches[0][0], "'");
-
-        return $database_name;
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -372,13 +346,27 @@ class Webapp_Site_Driver extends Webapp_Site_Engine
         Validation_Exception::is_valid($this->validate_ftp_state($ftp_enabled));
         Validation_Exception::is_valid($this->validate_file_state($file_enabled));
 
+
         // Database handling
         //------------------
 
-        $options['validate_exit_code'] = FALSE;
-        $shell = new Shell();
+        $database_name = $this->get_database_name($folder_existing);
+        $database_username = $this->get_database_user($folder_existing);
+        $database_password = $this->get_database_password($folder_existing);
 
-    
+        if ($database_name && $database_username) {
+
+            $con = mysqli_connect("localhost", "$database_username", "$database_password", "$database_name");
+            
+            if (mysqli_connect_errno()) {
+               throw new Engine_Exception(mysqli_connect_error());
+            }
+
+            $website_url = $site; // Base Path or HTTP(S) URL of website 
+            mysqli_query($con, "UPDATE `$database_name`.`wp_options` SET `option_value` = '$website_url' WHERE `wp_options`.`option_name` = 'siteurl' OR `wp_options`.`option_name` = 'home';");
+
+        }   
+
         // Add web site via Httpd API
         // --------------------------
 
@@ -411,7 +399,7 @@ class Webapp_Site_Driver extends Webapp_Site_Engine
             $options
         );
 
-        $this->_move_wordpress_beta($site, $folder_existing);
+        $this->_move_wordpress_beta($site, $folder_existing, $group);
     }
 
     /**
@@ -419,10 +407,11 @@ class Webapp_Site_Driver extends Webapp_Site_Engine
      *
      * @param string $site    site name
      * @param string $folder_existing existing folder name
+     * @param string $group group
      *
      * @return void
      */
-    protected function _move_wordpress_beta($site, $folder_existing)
+    protected function _move_wordpress_beta($site, $folder_existing, $group)
     {
 
         clearos_profile(__METHOD__, __LINE__);
@@ -463,7 +452,74 @@ class Webapp_Site_Driver extends Webapp_Site_Engine
             }
         }
 
+        // change permission to apache
+        $folder = new Folder($doc_root, TRUE);
+        $folder->chown(Httpd::SERVER_USERNAME, $group, TRUE);
+
         // delete existing folder
         $folder_existing_object->delete(TRUE);
+    }
+
+    /**
+     * Get database name from config file.
+     *
+     * @param string $site Project folder name
+     *
+     * @return string $database_name Database Name
+     */
+    function get_database_name($site)
+    {
+        $value = $this->_get_config_value("DB_NAME", $site);
+        if($value)
+            return $value;
+    }
+    /**
+     * Get database user from config file.
+     *
+     * @param string $site Project folder name
+     *
+     * @return string $database_user Database User
+     */
+    function get_database_user($site)
+    {
+        $value = $this->_get_config_value("DB_USER", $site);
+        if($value)
+            return $value;
+    }
+    /**
+     * Get database password from config file.
+     *
+     * @param string $site Project folder name
+     *
+     * @return string $password password
+     */
+    function get_database_password($site)
+    {
+        $value = $this->_get_config_value("DB_PASSWORD", $site);
+        if($value)
+            return $value;
+    }
+
+    /**
+     * Get config value from config file.
+     *
+     * @param string $key key
+     * @param string $site Project folder name
+     *
+     * @return string value
+     */
+    protected function _get_config_value($key, $site)
+    {
+        $folder_path = '/var/clearos/wordpress/sites/'.$site;
+        //$folder_path =  $this->get_document_root($site);
+        $main_file = $folder_path.'/'.self::FILE_CONFIG;
+        
+        $file = new File($main_file, TRUE);
+        if(!$file->exists())
+            return FALSE;
+        $line = $file->lookup_line("/$key/");
+        preg_match_all('/".*?"|\'.*?\'/', $line, $matches);
+        $value = trim($matches[0][1], "'");
+        return $value;
     }
 }
